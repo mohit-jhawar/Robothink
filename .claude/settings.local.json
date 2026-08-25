@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(claude-in-chrome)",
+      "Bash(cp \"2 - Robot Builds/robots/Celly Standee \\(with outline\\).png\" assets/mascots/celly.png)",
+      "Bash(cp \"2 - Robot Builds/robots/Cha Cha Standee \\(with outline\\).png\" assets/mascots/chacha.png)",
+      "Bash(cp \"2 - Robot Builds/robots/Jodie Standee \\(with outline\\).png\" assets/mascots/jodie.png)",
+      "Bash(cp \"2 - Robot Builds/robots/Tori Standee \\(with outline\\).png\" assets/mascots/tori.png)",
+      "Bash(cp \"2 - Robot Builds/robots/Roke Standee \\(with outline\\).png\" assets/mascots/roke.png)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/about.html)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8888/about.html)",
+      "Bash(npm audit *)",
+      "Bash(node -c server/routes/leads.js)",
+      "Bash(node -c server/email.js)",
+      "Bash(node -c admin/admin-dashboard.js)",
+      "Bash(node -c server/routes/sessions.js)",
+      "Bash(node -c server/app.js)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:8888/api/sessions?category=camp)",
+      "Bash(curl -s -o /dev/null -w \"vite: %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -s \"http://localhost:3002/api/sessions?category=camp\")",
+      "Bash(curl -s -o /dev/null -w \"vite page: %{http_code}\\\\n\" http://localhost:3002/camps-parties)",
+      "Bash(node -c server/routes/admin.js)",
+      "Bash(node -e \"require\\('./server/app.js'\\); console.log\\('app loads OK'\\)\")"
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /register/success
+Disallow: /register/cancel
+
+Sitemap: https://robothinkcollincounty.com/sitemap.xml

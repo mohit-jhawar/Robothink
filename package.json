@@ -1,0 +1,34 @@
+{
+  "name": "robothink-collin-county",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RoboThink Collin County — full-stack React + Vite site + Express API",
+  "scripts": {
+    "dev": "vite",
+    "server": "node server/local.js",
+    "images:webp": "node scripts/convert-webp.mjs",
+    "build": "node scripts/convert-webp.mjs && vite build",
+    "preview": "vite preview",
+    "seed:admin": "node scripts/create-admin.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "multer": "^2.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "serverless-http": "^3.2.0",
+    "stripe": "^16.12.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "dotenv": "^16.4.5",
+    "sharp": "^0.35.3",
+    "vite": "^5.4.5"
+  }
+}
