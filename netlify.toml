@@ -10,6 +10,7 @@
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
+  force = true
 
 # SPA fallback: let React Router handle client-side routes (incl. the custom
 # 404 page) on hard refreshes and deep links. Must come AFTER the /api rule.
