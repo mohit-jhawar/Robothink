@@ -15,6 +15,16 @@ const THEME_SLUGS = [
 
 const LEAD_STATUSES = ['new', 'contacted', 'enrolled', 'closed'];
 
+const STANDARD_PERIODS = [
+  { value: 'mo', label: 'Monthly (/mo)' },
+  { value: 'wk', label: 'Weekly (/week)' },
+  { value: 'yr', label: 'Annually (/year)' },
+  { value: 'cycle', label: '8-Week Cycle (/cycle)' },
+  { value: 'party', label: 'Per Birthday Party (/party)' },
+  { value: 'day', label: 'Per Day (/day)' },
+  { value: 'custom', label: '✨ Custom Creation...' },
+];
+
 const emptySessionForm = () => ({
   category: 'camp', theme_slug: '', title: '', description: '', image_url: '',
   start_date: '', end_date: '', city: '', venue: '', ages: '', spots_note: '',
@@ -65,6 +75,8 @@ export default function AdminPage() {
   const [pricingError, setPricingError] = useState('');
   const [pricingForm, setPricingForm] = useState(emptyPricingForm());
   const [editingPricingId, setEditingPricingId] = useState(null);
+  const [periodSelection, setPeriodSelection] = useState('mo');
+  const [customPeriodInput, setCustomPeriodInput] = useState('');
 
   // Universal Confirmation Modal State
   const [deleteTarget, setDeleteTarget] = useState(null); // { id, title, type: 'lead' | 'schedule' | 'session' | 'pricing' }
@@ -366,6 +378,14 @@ export default function AdminPage() {
 
   function startEditPricing(plan) {
     setEditingPricingId(plan.id);
+    const isStandard = STANDARD_PERIODS.some((p) => p.value !== 'custom' && p.value === plan.billing_period);
+    if (isStandard) {
+      setPeriodSelection(plan.billing_period || 'mo');
+      setCustomPeriodInput('');
+    } else {
+      setPeriodSelection('custom');
+      setCustomPeriodInput(plan.billing_period || '');
+    }
     setPricingForm({
       category: plan.category || 'membership',
       name: plan.name || '',
@@ -381,6 +401,8 @@ export default function AdminPage() {
 
   function cancelEditPricing() {
     setEditingPricingId(null);
+    setPeriodSelection('mo');
+    setCustomPeriodInput('');
     setPricingForm(emptyPricingForm());
   }
 
@@ -454,6 +476,63 @@ export default function AdminPage() {
 
   return (
     <div className="section" style={{ minHeight: '75vh', padding: '2.5rem 0 5rem' }}>
+      {/* ── Scoped Styling for Table Actions ── */}
+      <style>{`
+        .table-actions-cell {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 8px;
+          white-space: nowrap;
+        }
+        .btn-table-edit {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 6px 13px;
+          font-size: 0.82rem;
+          font-weight: 600;
+          border-radius: 7px;
+          background: #f0f9ff;
+          color: #0284c7;
+          border: 1px solid #bae6fd;
+          cursor: pointer;
+          transition: all 0.18s ease;
+          line-height: 1.2;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .btn-table-edit:hover {
+          background: #0284c7;
+          color: #ffffff;
+          border-color: #0284c7;
+          transform: translateY(-1px);
+          box-shadow: 0 3px 8px rgba(2, 132, 199, 0.25);
+        }
+        .btn-table-delete {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 6px 13px;
+          font-size: 0.82rem;
+          font-weight: 600;
+          border-radius: 7px;
+          background: #fef2f2;
+          color: #dc2626;
+          border: 1px solid #fecaca;
+          cursor: pointer;
+          transition: all 0.18s ease;
+          line-height: 1.2;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .btn-table-delete:hover {
+          background: #dc2626;
+          color: #ffffff;
+          border-color: #dc2626;
+          transform: translateY(-1px);
+          box-shadow: 0 3px 8px rgba(220, 38, 38, 0.25);
+        }
+      `}</style>
+
       <div className="container" style={{ maxWidth: '1080px' }}>
         {/* Top Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -621,13 +700,13 @@ export default function AdminPage() {
                           ))}
                         </select>
                       </td>
-                      <td>
+                      <td style={{ textAlign: 'right' }}>
                         <button
                           type="button"
-                          className="danger"
+                          className="btn-table-delete"
                           onClick={() => promptDelete({ id: l.id, title: `Lead from ${l.name} (${l.email})`, type: 'lead' })}
-                          style={{ fontSize: '0.8rem', padding: '4px 8px' }}
                         >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                           Delete
                         </button>
                       </td>
@@ -709,9 +788,17 @@ export default function AdminPage() {
                       <td>{loc.program}</td>
                       <td>{loc.day_time}</td>
                       <td>{loc.ages}</td>
-                      <td className="row-actions">
-                        <button type="button" onClick={() => startEditSchedule(loc)}>Edit</button>
-                        <button type="button" className="danger" onClick={() => promptDelete({ id: loc.id, title: `${loc.program} at ${loc.venue} (${loc.city})`, type: 'schedule' })}>Delete</button>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="table-actions-cell">
+                          <button type="button" className="btn-table-edit" onClick={() => startEditSchedule(loc)}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Edit
+                          </button>
+                          <button type="button" className="btn-table-delete" onClick={() => promptDelete({ id: loc.id, title: `${loc.program} at ${loc.venue} (${loc.city})`, type: 'schedule' })}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -828,9 +915,17 @@ export default function AdminPage() {
                       <td>{s.title}</td>
                       <td>{s.start_date}{s.end_date ? ` – ${s.end_date}` : ''}</td>
                       <td>{[s.city, s.venue].filter(Boolean).join(' · ') || '—'}</td>
-                      <td className="row-actions">
-                        <button type="button" onClick={() => startEditSession(s)}>Edit</button>
-                        <button type="button" className="danger" onClick={() => promptDelete({ id: s.id, title: s.title, type: 'session' })}>Delete</button>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="table-actions-cell">
+                          <button type="button" className="btn-table-edit" onClick={() => startEditSession(s)}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Edit
+                          </button>
+                          <button type="button" className="btn-table-delete" onClick={() => promptDelete({ id: s.id, title: s.title, type: 'session' })}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -878,7 +973,35 @@ export default function AdminPage() {
                 </div>
                 <div className="field">
                   <label>Billing Period / Frequency</label>
-                  <input type="text" name="billing_period" required value={pricingForm.billing_period} onChange={handlePricingFieldChange} placeholder="mo, cycle, party, or day" />
+                  <select
+                    value={periodSelection}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setPeriodSelection(val);
+                      if (val === 'custom') {
+                        setPricingForm((prev) => ({ ...prev, billing_period: customPeriodInput || '' }));
+                      } else {
+                        setPricingForm((prev) => ({ ...prev, billing_period: val }));
+                      }
+                    }}
+                  >
+                    {STANDARD_PERIODS.map((p) => (
+                      <option key={p.value} value={p.value}>{p.label}</option>
+                    ))}
+                  </select>
+                  {periodSelection === 'custom' && (
+                    <input
+                      type="text"
+                      required
+                      placeholder="Enter custom frequency (e.g. session, semester, class)"
+                      value={customPeriodInput}
+                      onChange={(e) => {
+                        setCustomPeriodInput(e.target.value);
+                        setPricingForm((prev) => ({ ...prev, billing_period: e.target.value }));
+                      }}
+                      style={{ marginTop: '0.5rem' }}
+                    />
+                  )}
                 </div>
               </div>
 
@@ -937,9 +1060,17 @@ export default function AdminPage() {
                       <td>${((plan.price_cents || 0) / 100).toFixed(2)}</td>
                       <td>/{plan.billing_period}</td>
                       <td>{plan.featured ? '⭐ Featured' : '—'}</td>
-                      <td className="row-actions">
-                        <button type="button" onClick={() => startEditPricing(plan)}>Edit</button>
-                        <button type="button" className="danger" onClick={() => promptDelete({ id: plan.id, title: plan.name, type: 'pricing' })}>Delete</button>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="table-actions-cell">
+                          <button type="button" className="btn-table-edit" onClick={() => startEditPricing(plan)}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Edit
+                          </button>
+                          <button type="button" className="btn-table-delete" onClick={() => promptDelete({ id: plan.id, title: plan.name, type: 'pricing' })}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
