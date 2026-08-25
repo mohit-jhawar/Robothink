@@ -17,6 +17,18 @@ const app = express();
 
 app.use(cors());
 
+// Normalize URL prefixes so routes match whether called directly (/admin/login),
+// via Vite proxy (/api/admin/login), or via Netlify Functions (/.netlify/functions/api/admin/login).
+app.use((req, res, next) => {
+  if (req.url.startsWith('/.netlify/functions/api')) {
+    req.url = req.url.replace('/.netlify/functions/api', '') || '/';
+  }
+  if (req.url.startsWith('/api')) {
+    req.url = req.url.replace(/^\/api/, '') || '/';
+  }
+  next();
+});
+
 // Stripe requires the raw request body to verify webhook signatures, so this
 // route must be registered (with its own raw-body parser) BEFORE the global
 // express.json() below — otherwise json() would consume/parse the body first.
